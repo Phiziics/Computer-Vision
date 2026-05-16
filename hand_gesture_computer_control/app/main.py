@@ -4,7 +4,7 @@ import time
 from hand_tracker import HandTracker
 from gesture_detector import GestureDetector
 from computer_controller import ComputerController
-from config import CAMERA_WIDTH, CAMERA_HEIGHT, PINCH_THRESHOLD, SCREEN_SMOOTHING, CLICK_COOLDOWN
+from config import CAMERA_WIDTH, CAMERA_HEIGHT, PINCH_THRESHOLD, SCREEN_SMOOTHING
 
 
 class HandGestureApp:
@@ -18,13 +18,14 @@ class HandGestureApp:
         self.controller = ComputerController(smoothing=SCREEN_SMOOTHING)
 
         self.last_click_time = 0
+        self.click_cooldown = 1.0
 
     def run(self):
         while True:
             success, frame = self.cap.read()
 
             if not success:
-                print("Could not read from camera.")
+                print("Could not read from webcam.")
                 break
 
             frame = cv2.flip(frame, 1)
@@ -40,19 +41,24 @@ class HandGestureApp:
 
                 if gesture == "open_palm":
                     self.controller.resume_control()
-                    self.controller.move_mouse(hand_x, hand_y, CAMERA_WIDTH, CAMERA_HEIGHT)
+                    self.controller.move_mouse(
+                        hand_x,
+                        hand_y,
+                        CAMERA_WIDTH,
+                        CAMERA_HEIGHT
+                    )
 
                 elif gesture == "pinch":
                     current_time = time.time()
 
-                    if current_time - self.last_click_time > CLICK_COOLDOWN:
+                    if current_time - self.last_click_time > self.click_cooldown:
                         self.controller.left_click()
                         self.last_click_time = current_time
 
                 elif gesture == "peace":
                     current_time = time.time()
 
-                    if current_time - self.last_click_time > CLICK_COOLDOWN:
+                    if current_time - self.last_click_time > self.click_cooldown:
                         self.controller.right_click()
                         self.last_click_time = current_time
 
@@ -66,13 +72,33 @@ class HandGestureApp:
                 cv2.FONT_HERSHEY_SIMPLEX,
                 1,
                 (255, 255, 255),
-                2,
+                2
+            )
+
+            cv2.putText(
+                frame,
+                "q: quit | p: pause | r: resume",
+                (30, 90),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (255, 255, 255),
+                2
             )
 
             cv2.imshow("Hand Gesture Computer Control", frame)
 
-            if cv2.waitKey(1) & 0xFF == ord("q"):
+            key = cv2.waitKey(1) & 0xFF
+
+            if key == ord("q"):
                 break
+
+            if key == ord("p"):
+                self.controller.pause_control()
+                print("Control paused.")
+
+            if key == ord("r"):
+                self.controller.resume_control()
+                print("Control resumed.")
 
         self.cap.release()
         cv2.destroyAllWindows()
