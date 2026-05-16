@@ -4,6 +4,7 @@ import time
 from hand_tracker import HandTracker
 from gesture_detector import GestureDetector
 from computer_controller import ComputerController
+from gesture_logger import GestureLogger
 from config import CAMERA_WIDTH, CAMERA_HEIGHT, PINCH_THRESHOLD, SCREEN_SMOOTHING
 
 
@@ -16,6 +17,9 @@ class HandGestureApp:
         self.tracker = HandTracker()
         self.detector = GestureDetector(pinch_threshold=PINCH_THRESHOLD)
         self.controller = ComputerController(smoothing=SCREEN_SMOOTHING)
+
+        self.logger = GestureLogger()
+        self.last_logged_gesture = None
 
         self.last_click_time = 0
         self.click_cooldown = 1.0
@@ -33,6 +37,10 @@ class HandGestureApp:
             frame, results = self.tracker.find_hands(frame)
             landmarks = self.tracker.get_landmarks(frame, results)
             gesture = self.detector.detect_gesture(landmarks)
+
+            if gesture != self.last_logged_gesture:
+                self.logger.log(gesture)
+                self.last_logged_gesture = gesture
 
             if landmarks:
                 index_tip = landmarks[8]
