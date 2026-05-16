@@ -3,3 +3,6 @@ mediapipe
 pyautogui
 numpy
 pytest
+pandas
+matplotlib
+jupyter
