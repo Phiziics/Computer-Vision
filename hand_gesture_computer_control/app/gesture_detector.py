@@ -14,6 +14,14 @@ class GestureDetector:
 
         fingers = []
 
+        thumb_tip = landmarks[4]
+        thumb_ip = landmarks[3]
+
+        if thumb_tip[1] > thumb_ip[1]:
+            fingers.append(1)
+        else:
+            fingers.append(0)
+
         finger_tips = [8, 12, 16, 20]
         finger_pips = [6, 10, 14, 18]
 
@@ -38,13 +46,22 @@ class GestureDetector:
         if pinch_distance < self.pinch_threshold:
             return "pinch"
 
-        if fingers == [1, 1, 1, 1]:
-            return "open_palm"
+        if fingers == [0, 1, 0, 0, 0]:
+            return "one_finger"
 
-        if fingers == [1, 1, 0, 0]:
-            return "peace"
+        if fingers == [0, 1, 1, 0, 0]:
+            return "two_fingers"
 
-        if fingers == [0, 0, 0, 0]:
+        if fingers == [0, 1, 1, 1, 0]:
+            return "three_fingers"
+
+        if fingers == [0, 1, 1, 1, 1]:
+            return "four_fingers"
+
+        if fingers == [1, 1, 1, 1, 1]:
+            return "open_hand"
+
+        if fingers == [0, 0, 0, 0, 0]:
             return "fist"
 
         return "unknown"

@@ -5,6 +5,7 @@ from hand_tracker import HandTracker
 from gesture_detector import GestureDetector
 from computer_controller import ComputerController
 from gesture_logger import GestureLogger
+from action_mapper import ActionMapper
 from config import CAMERA_WIDTH, CAMERA_HEIGHT, PINCH_THRESHOLD, SCREEN_SMOOTHING
 
 
@@ -17,12 +18,30 @@ class HandGestureApp:
         self.tracker = HandTracker()
         self.detector = GestureDetector(pinch_threshold=PINCH_THRESHOLD)
         self.controller = ComputerController(smoothing=SCREEN_SMOOTHING)
-
         self.logger = GestureLogger()
-        self.last_logged_gesture = None
+        self.action_mapper = ActionMapper()
 
-        self.last_click_time = 0
-        self.click_cooldown = 1.0
+        self.last_logged_gesture = None
+        self.last_action_time = 0
+        self.action_cooldown = 3.0
+
+    def can_run_action(self):
+        current_time = time.time()
+        return current_time - self.last_action_time > self.action_cooldown
+
+    def run_gesture_action(self, gesture):
+        action_gestures = [
+            "one_finger",
+            "two_fingers",
+            "three_fingers",
+            "four_fingers",
+            "open_hand",
+            "fist"
+        ]
+
+        if gesture in action_gestures and self.can_run_action():
+            self.action_mapper.run_action(gesture)
+            self.last_action_time = time.time()
 
     def run(self):
         while True:
@@ -42,36 +61,7 @@ class HandGestureApp:
                 self.logger.log(gesture)
                 self.last_logged_gesture = gesture
 
-            if landmarks:
-                index_tip = landmarks[8]
-                hand_x = index_tip[1]
-                hand_y = index_tip[2]
-
-                if gesture == "open_palm":
-                    self.controller.resume_control()
-                    self.controller.move_mouse(
-                        hand_x,
-                        hand_y,
-                        CAMERA_WIDTH,
-                        CAMERA_HEIGHT
-                    )
-
-                elif gesture == "pinch":
-                    current_time = time.time()
-
-                    if current_time - self.last_click_time > self.click_cooldown:
-                        self.controller.left_click()
-                        self.last_click_time = current_time
-
-                elif gesture == "peace":
-                    current_time = time.time()
-
-                    if current_time - self.last_click_time > self.click_cooldown:
-                        self.controller.right_click()
-                        self.last_click_time = current_time
-
-                elif gesture == "fist":
-                    self.controller.pause_control()
+            self.run_gesture_action(gesture)
 
             cv2.putText(
                 frame,
@@ -85,28 +75,30 @@ class HandGestureApp:
 
             cv2.putText(
                 frame,
-                "q: quit | p: pause | r: resume",
+                "1: VS Code | 2: Browser | 3: Terminal | 4: LinkedIn",
                 (30, 90),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                0.8,
+                0.7,
                 (255, 255, 255),
                 2
             )
 
-            cv2.imshow("Hand Gesture Computer Control", frame)
+            cv2.putText(
+                frame,
+                "Open hand: Calculator | Fist: Close active window | q: Quit",
+                (30, 125),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                (255, 255, 255),
+                2
+            )
+
+            cv2.imshow("GestureOS Command Center", frame)
 
             key = cv2.waitKey(1) & 0xFF
 
             if key == ord("q"):
                 break
-
-            if key == ord("p"):
-                self.controller.pause_control()
-                print("Control paused.")
-
-            if key == ord("r"):
-                self.controller.resume_control()
-                print("Control resumed.")
 
         self.cap.release()
         cv2.destroyAllWindows()
