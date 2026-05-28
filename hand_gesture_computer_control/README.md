@@ -1,20 +1,12 @@
-# GestureOS
+# GestureOS: Hand Sign Computer Controller
 
-GestureOS is a real time computer vision project that uses a webcam to detect hand gestures and control a computer.
+GestureOS is a computer vision desktop automation project that uses a webcam to detect hand signs and trigger computer actions.
 
-## Features
+Instead of using a keyboard or mouse, the user can open apps and control desktop workflows using hand gestures.
 
-Open palm controls mouse movement.
+## Project Goal
 
-Pinch performs left click.
-
-Peace sign performs right click.
-
-Fist pauses control.
-
-Keyboard safety controls allow pause, resume, and quit.
-
-## Tech Stack
+The goal of this project is to build a hands-free computer control system using:
 
 Python
 
@@ -24,33 +16,33 @@ MediaPipe
 
 PyAutoGUI
 
-NumPy
+Computer automation
+
+Gesture logging
+
+This project is useful for productivity, accessibility, presentations, and touchless computer interaction.
+
+## Current Gesture Controls
+
+| Hand Sign | Action |
+|---|---|
+| One finger up | Open VS Code |
+| Two fingers up | Open browser |
+| Three fingers up | Open terminal |
+| Four fingers up | Open LinkedIn |
+| Open hand | Open calculator |
+| Fist | Close active window |
+
+To prevent accidental actions, each gesture must be held for about 1 second before the action runs.
 
 ## How It Works
 
-Webcam input is captured with OpenCV.
+The system follows this flow:
 
-MediaPipe detects hand landmarks.
-
-Custom gesture logic classifies hand signs.
-
-PyAutoGUI maps gestures to mouse and keyboard actions.
-
-## Run
-
-Install dependencies:
-
-pip install -r requirements.txt
-
-Run the app:
-
-cd app
-python main.py
-
-## Controls
-
-q quits the app.
-
-p pauses control.
-
-r resumes control.
+```python
+Webcam frame
+→ OpenCV captures video
+→ MediaPipe detects hand landmarks
+→ GestureDetector classifies the hand sign
+→ ActionMapper runs the matching computer action
+→ GestureLogger saves gesture activity to CSV
