@@ -23,3 +23,10 @@ video:
 validation:
   minimum_duration_seconds: 1.0
   require_readable_video: true
+
+splits:
+  train_size: 0.70
+  validation_size: 0.15
+  test_size: 0.15
+  stratify_column: category
+  random_state: 42
